@@ -29,6 +29,93 @@
       </div>
     </div>
 
+    <!-- Modal Ambil Nomor Surat -->
+<div id="nomorModal" class="ns-modal" style="display:none;">
+  <div class="ns-modal-backdrop" id="nomorModalBackdrop"></div>
+
+  <div class="ns-modal-card" role="dialog" aria-modal="true" aria-labelledby="nomorModalTitle">
+    <div class="ns-modal-header">
+      <div>
+        <h3 id="nomorModalTitle">Ambil Nomor Surat</h3>
+        <p class="ns-modal-subtitle">Pilih jenis surat & subbagian, lalu generate nomor.</p>
+      </div>
+      <button type="button" class="ns-modal-close" id="nomorModalCloseBtn" aria-label="Tutup">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="ns-modal-body">
+      <div class="ns-kode-box">
+        <div>
+          <small>Kode klasifikasi</small>
+          <div class="ns-kode-value"><code id="selectedKode">-</code></div>
+        </div>
+        <div>
+          <small>Uraian</small>
+          <div class="ns-kode-uraian" id="selectedUraian">-</div>
+        </div>
+      </div>
+
+      <div class="ns-form-grid">
+        <label class="ns-field">
+          <span>Jenis surat</span>
+          <select id="jenisSurat">
+            <option value="UMUM">Umum (kode/urut/subbagian)</option>
+            <option value="PERJANJIAN">Surat Perjanjian (kode/urut/subbagian/tahun)</option>
+          </select>
+        </label>
+
+        <label class="ns-field">
+          <span>Subbagian / Bidang</span>
+          <select id="kodeSubbagian">
+            <option value="">Memuat data…</option>
+          </select>
+          <small class="ns-hint" id="subbagianHint"></small>
+        </label>
+
+        <label class="ns-field">
+          <span>Nama pemohon (opsional)</span>
+          <input id="namaPemohon" type="text" placeholder="Nama pengusul/pembuat surat">
+        </label>
+
+        <label class="ns-field">
+          <span>Tanggal surat (opsional)</span>
+          <input id="tanggalSurat" type="date">
+          <small class="ns-hint">Tahun diambil dari tanggal ini (untuk Surat Perjanjian).</small>
+        </label>
+
+        <label class="ns-field ns-full">
+          <span>Perihal (opsional)</span>
+          <textarea id="perihal" rows="3" placeholder="Contoh: Permohonan perjalanan dinas…"></textarea>
+        </label>
+      </div>
+
+      <div id="nomorResult" class="ns-result" style="display:none;">
+        <div class="ns-result-top">
+          <div>
+            <div class="ns-result-title">Nomor surat</div>
+            <div class="ns-result-value" id="nomorValue">-</div>
+            <div class="ns-result-meta" id="nomorMeta"></div>
+          </div>
+
+          <button type="button" id="copyNomorBtn" class="ns-copy-btn">
+            <i class="fa-regular fa-copy"></i> Copy
+          </button>
+        </div>
+      </div>
+
+      <div id="nomorModalStatus" class="ns-modal-status"></div>
+    </div>
+
+    <div class="ns-modal-footer">
+      <button type="button" class="ns-btn ns-btn-secondary" id="cancelNomorBtn">Batal</button>
+      <button type="button" class="ns-btn ns-btn-primary" id="generateNomorBtn">
+        <i class="fa-solid fa-hashtag"></i> Generate
+      </button>
+    </div>
+  </div>
+</div>
+
     <div class="results-table-wrapper">
       <table class="results-table">
         <thead>
@@ -37,6 +124,7 @@
             <th>Uraian</th>
             <th style="width: 140px;">Kelompok Utama</th>
             <th style="width: 220px;">Kelompok Sub</th>
+            <th style="width: 140px;">Aksi</th>
           </tr>
         </thead>
         <tbody id="resultsBody">
@@ -251,6 +339,242 @@
       padding: 0.75rem;
     }
   }
+
+  /* ===== Modal Nomor Surat ===== */
+.ns-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+.ns-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.ns-modal-card {
+  position: relative;
+  width: min(720px, calc(100% - 2rem));
+  margin: 5vh auto;
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 50px rgba(2, 6, 23, 0.25);
+  overflow: hidden;
+}
+
+.ns-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.75rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ns-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ns-modal-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.ns-modal-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #0f172a;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+}
+.ns-modal-close:hover { background: #e2e8f0; }
+
+.ns-modal-body {
+  padding: 1rem;
+}
+
+.ns-kode-box {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 0.9rem;
+  padding: 0.75rem;
+  background: #ecfeff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.85rem;
+  margin-bottom: 0.9rem;
+}
+
+.ns-kode-box small {
+  display: block;
+  font-size: 0.7rem;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+.ns-kode-uraian {
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.ns-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.ns-field span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.ns-field input,
+.ns-field select,
+.ns-field textarea {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.ns-field input:focus,
+.ns-field select:focus,
+.ns-field textarea:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.6);
+}
+
+.ns-full { grid-column: 1 / -1; }
+
+.ns-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.ns-result {
+  margin-top: 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  padding: 0.85rem;
+}
+
+.ns-result-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ns-result-title {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
+
+.ns-result-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f766e;
+  letter-spacing: 0.2px;
+}
+
+.ns-result-meta {
+  margin-top: 0.35rem;
+  font-size: 0.74rem;
+  color: #475569;
+}
+
+.ns-copy-btn {
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ns-copy-btn:hover { background: #f1f5f9; }
+
+.ns-modal-status {
+  margin-top: 0.65rem;
+  font-size: 0.8rem;
+  min-height: 1rem;
+  color: #64748b;
+}
+
+.ns-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.ns-btn {
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ns-btn-secondary {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #0f172a;
+}
+.ns-btn-secondary:hover { background: #f1f5f9; }
+
+.ns-btn-primary {
+  background: linear-gradient(135deg, #14b8a6, #06b6d4);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 10px 18px rgba(13, 148, 136, 0.35);
+}
+.ns-btn-primary:hover { filter: brightness(1.05); }
+
+@media (max-width: 640px) {
+  .ns-kode-box { grid-template-columns: 1fr; }
+  .ns-form-grid { grid-template-columns: 1fr; }
+  .ns-modal-card { margin: 2vh auto; }
+}
+
+  .ambil-nomor-btn{
+  border:none;
+  border-radius:999px;
+  background:#0ea5e9;
+  color:#fff;
+  padding:0.4rem 0.7rem;
+  font-size:0.75rem;
+  font-weight:600;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:0.35rem;
+}
+.ambil-nomor-btn:hover{ filter:brightness(1.05); }
+
 </style>
 
 <script>
@@ -270,6 +594,191 @@
     const resultsCount    = $('resultsCount');
     const resultsInfo     = $('resultsInfo');
     const searchButton    = $('searchButton');
+
+    // ===== Modal & Nomor Surat =====
+    const nomorModal         = $('nomorModal');
+    const nomorModalBackdrop = $('nomorModalBackdrop');
+    const nomorModalCloseBtn = $('nomorModalCloseBtn');
+    const cancelNomorBtn     = $('cancelNomorBtn');
+    const generateNomorBtn   = $('generateNomorBtn');
+    const nomorModalStatus   = $('nomorModalStatus');
+    
+    const selectedKodeEl   = $('selectedKode');
+    const selectedUraianEl = $('selectedUraian');
+    
+    const jenisSuratEl     = $('jenisSurat');
+    const kodeSubbagianEl  = $('kodeSubbagian');
+    const subbagianHintEl  = $('subbagianHint');
+    const namaPemohonEl    = $('namaPemohon');
+    const tanggalSuratEl   = $('tanggalSurat');
+    const perihalEl        = $('perihal');
+    
+    const nomorResultEl = $('nomorResult');
+    const nomorValueEl  = $('nomorValue');
+    const nomorMetaEl   = $('nomorMeta');
+    const copyNomorBtn  = $('copyNomorBtn');
+    
+    let selectedKode = '';
+    let selectedUraian = '';
+    let subbagianLoaded = false;
+
+    function setNomorStatus(msg, type){
+      if (!nomorModalStatus) return;
+      nomorModalStatus.textContent = msg || '';
+      nomorModalStatus.style.color =
+        type === 'error' ? '#b91c1c' :
+        type === 'ok' ? '#0f766e' :
+        '#64748b';
+    }
+
+    function openNomorModal(kode, uraian){
+      selectedKode = kode || '';
+      selectedUraian = uraian || '';
+    
+      if (selectedKodeEl) selectedKodeEl.textContent = selectedKode || '-';
+      if (selectedUraianEl) selectedUraianEl.textContent = selectedUraian || '-';
+    
+      // reset form
+      if (jenisSuratEl) jenisSuratEl.value = 'UMUM';
+      if (namaPemohonEl) namaPemohonEl.value = '';
+      if (tanggalSuratEl) tanggalSuratEl.value = '';
+      if (perihalEl) perihalEl.value = '';
+      if (nomorResultEl) nomorResultEl.style.display = 'none';
+    
+      setNomorStatus('', '');
+    
+      // load subbagian list sekali saja
+      if (!subbagianLoaded) {
+        setNomorStatus('Memuat daftar subbagian…', '');
+        google.script.run
+          .withSuccessHandler(function(list){
+            subbagianLoaded = true;
+            if (!Array.isArray(list)) list = [];
+            if (!kodeSubbagianEl) return;
+    
+            kodeSubbagianEl.innerHTML = '<option value="">-- pilih subbagian --</option>';
+            list.forEach(function(item){
+              const opt = document.createElement('option');
+              opt.value = item.kode;
+              opt.textContent = item.kode + ' — ' + item.nama;
+              kodeSubbagianEl.appendChild(opt);
+            });
+    
+            if (subbagianHintEl) {
+              subbagianHintEl.textContent = list.length
+                ? 'Daftar subbagian berhasil dimuat.'
+                : 'Belum ada data subbagian. Isi sheet Ref_Subbagian.';
+            }
+            setNomorStatus('', '');
+          })
+          .withFailureHandler(function(err){
+            setNomorStatus('Gagal memuat subbagian: ' + (err && err.message ? err.message : err), 'error');
+            if (kodeSubbagianEl) kodeSubbagianEl.innerHTML = '<option value="">(gagal memuat)</option>';
+          })
+          .getSubbagianList();
+      }
+    
+      if (nomorModal) nomorModal.style.display = 'block';
+    }
+    
+    function closeNomorModal(){
+      if (nomorModal) nomorModal.style.display = 'none';
+    }
+    
+    async function copyText(text){
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch(e){
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      }
+    }
+
+// Event delegation untuk tombol "Ambil" di tabel
+if (resultsBody) {
+  resultsBody.addEventListener('click', function(ev){
+    const btn = ev.target.closest('.ambil-nomor-btn');
+    if (!btn) return;
+
+    const kode = btn.getAttribute('data-kode') || '';
+    const uraian = btn.getAttribute('data-uraian') || '';
+    openNomorModal(kode, uraian);
+  });
+}
+
+// Close events
+if (nomorModalBackdrop) nomorModalBackdrop.addEventListener('click', closeNomorModal);
+if (nomorModalCloseBtn) nomorModalCloseBtn.addEventListener('click', closeNomorModal);
+if (cancelNomorBtn) cancelNomorBtn.addEventListener('click', closeNomorModal);
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape' && nomorModal && nomorModal.style.display === 'block') closeNomorModal();
+});
+
+// Generate nomor
+if (generateNomorBtn) {
+  generateNomorBtn.addEventListener('click', function(){
+    const kodeSub = (kodeSubbagianEl && kodeSubbagianEl.value) ? kodeSubbagianEl.value.trim() : '';
+    const jenis   = (jenisSuratEl && jenisSuratEl.value) ? jenisSuratEl.value : 'UMUM';
+
+    if (!selectedKode) {
+      setNomorStatus('Kode klasifikasi belum dipilih.', 'error');
+      return;
+    }
+    if (!kodeSub) {
+      setNomorStatus('Pilih subbagian terlebih dahulu.', 'error');
+      return;
+    }
+
+    const payload = {
+      kodeKlasifikasi: selectedKode,
+      kodeSubbagian: kodeSub,
+      jenisSurat: jenis,
+      namaPemohon: (namaPemohonEl && namaPemohonEl.value) ? namaPemohonEl.value.trim() : '',
+      perihal: (perihalEl && perihalEl.value) ? perihalEl.value.trim() : '',
+      tanggalSurat: (tanggalSuratEl && tanggalSuratEl.value) ? tanggalSuratEl.value : ''
+    };
+
+    setNomorStatus('Menghasilkan nomor surat…', '');
+
+    google.script.run
+      .withSuccessHandler(function(res){
+        const nomor = res && res.nomorSurat ? res.nomorSurat : '';
+        if (!nomor) {
+          setNomorStatus('Berhasil, tapi nomor surat kosong (cek log server).', 'error');
+          return;
+        }
+
+        if (nomorValueEl) nomorValueEl.textContent = nomor;
+        if (nomorMetaEl) {
+          nomorMetaEl.textContent = 'Nomor urut: ' + res.nomorUrut + ' | Tahun: ' + res.tahun;
+        }
+        if (nomorResultEl) nomorResultEl.style.display = 'block';
+        setNomorStatus('Nomor surat berhasil dibuat & disimpan ke register.', 'ok');
+      })
+      .withFailureHandler(function(err){
+        setNomorStatus('Gagal generate: ' + (err && err.message ? err.message : err), 'error');
+      })
+      .generateNomorSurat(payload);
+  });
+}
+
+// Copy nomor
+if (copyNomorBtn) {
+  copyNomorBtn.addEventListener('click', async function(){
+    const text = nomorValueEl ? nomorValueEl.textContent : '';
+    if (!text) return;
+    const ok = await copyText(text);
+    setNomorStatus(ok ? 'Nomor surat tersalin.' : 'Gagal menyalin nomor surat.', ok ? 'ok' : 'error');
+  });
+}
 
     function escapeHtml(str) {
       return String(str || '')
@@ -322,7 +831,14 @@
             '<td><code>' + escapeHtml(row.kode || '') + '</code></td>' +
             '<td>' + escapeHtml(row.uraian || '') + '</td>' +
             '<td>' + escapeHtml(row.kelompokUtama || '') + '</td>' +
-            '<td>' + escapeHtml(row.kelompokSub || '') + '</td>';
+            '<td>' + escapeHtml(row.kelompokSub || '') + '</td>' +
+            '<td>' +
+              '<button type="button" class="ambil-nomor-btn" ' +
+                'data-kode="' + escapeHtml(row.kode || '') + '" ' +
+                'data-uraian="' + escapeHtml(row.uraian || '') + '">' +
+                '<i class="fa-solid fa-hashtag"></i> Ambil' +
+              '</button>' +
+            '</td>';
           resultsBody.appendChild(tr);
         });
       }
