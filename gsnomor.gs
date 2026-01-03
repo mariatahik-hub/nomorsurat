@@ -53,7 +53,9 @@ function generateNomorSurat(payload) {
   var kodeSub  = String(payload.kodeSubbagian || '').trim();
   var perihal  = String(payload.perihal || '').trim();
   var namaPemohon = String(payload.namaPemohon || '').trim();
-  var series   = String(payload.series || 'SURAT').trim().toUpperCase();
+
+  // Jenis surat: UMUM / PERJANJIAN
+  var jenisSurat = String(payload.jenisSurat || 'UMUM').trim().toUpperCase();
 
   if (!kodeKlas) throw new Error('Kode klasifikasi wajib diisi.');
   if (!kodeSub)  throw new Error('Kode subbagian wajib dipilih.');
@@ -62,7 +64,10 @@ function generateNomorSurat(payload) {
   var tanggal = tanggalStr ? new Date(tanggalStr + 'T00:00:00') : new Date();
   var tahun = tanggal.getFullYear();
 
-  // Lock untuk mencegah 2 user dapat nomor yang sama
+  // Counter key: kalau kamu mau nomor urut "berlanjut" untuk semua surat umum,
+  // pakai seriesGroup = 'UMUM'. Kalau mau dipisah, bisa pakai jenisSurat.
+  var seriesGroup = (jenisSurat === 'PERJANJIAN') ? 'PERJANJIAN' : 'UMUM';
+
   var lock = LockService.getScriptLock();
   lock.waitLock(30000);
 
@@ -75,13 +80,16 @@ function generateNomorSurat(payload) {
     var registerSheet = ensureSheet_(ss, 'Register_NomorSurat',
       ['Timestamp','UserEmail','NamaPemohon','Tahun','Series','NomorUrut','KodeKlasifikasi','KodeSubbagian','Perihal','NomorSurat']);
 
-    // Ambil & increment counter (per tahun + series)
-    var nextNumber = nextCounter_(counterSheet, tahun, series);
+    var nextNumber = nextCounter_(counterSheet, tahun, seriesGroup);
 
-    // Format nomor surat sesuai aturan kamu
+    // FORMAT:
+    // UMUM      : kode/urut/subbag
+    // PERJANJIAN: kode/urut/subbag/tahun
     var nomorSurat = kodeKlas + '/' + nextNumber + '/' + kodeSub;
+    if (jenisSurat === 'PERJANJIAN') {
+      nomorSurat += '/' + tahun;
+    }
 
-    // email bisa kosong kalau web app publik (ini normal)
     var userEmail = '';
     try { userEmail = Session.getActiveUser().getEmail() || ''; } catch (e) {}
 
@@ -90,7 +98,7 @@ function generateNomorSurat(payload) {
       userEmail,
       namaPemohon,
       tahun,
-      series,
+      seriesGroup,
       nextNumber,
       kodeKlas,
       kodeSub,
@@ -102,7 +110,8 @@ function generateNomorSurat(payload) {
       nomorSurat: nomorSurat,
       nomorUrut: nextNumber,
       tahun: tahun,
-      series: series
+      series: seriesGroup,
+      jenisSurat: jenisSurat
     };
   } finally {
     lock.releaseLock();
