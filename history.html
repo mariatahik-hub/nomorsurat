@@ -1,0 +1,441 @@
+<div class="history-module">
+  <div class="history-header">
+    
+  </div>
+
+  <form id="historyFilterForm" class="history-filter">
+    <div class="filter-row">
+      <div class="filter-field">
+        <label for="fromDate">
+          <span><i class="fa-regular fa-calendar"></i> Dari tanggal</span>
+        </label>
+        <input type="date" id="fromDate" name="fromDate">
+      </div>
+
+      <div class="filter-field">
+        <label for="toDate">
+          <span><i class="fa-regular fa-calendar-check"></i> Sampai tanggal</span>
+        </label>
+        <input type="date" id="toDate" name="toDate">
+      </div>
+
+      <div class="filter-field">
+        <label for="keywordFilter">
+          <span><i class="fa-solid fa-filter"></i> Filter kata kunci / email</span>
+        </label>
+        <input type="text" id="keywordFilter" name="keywordFilter" placeholder="Contoh: perjalanan dinas atau nama@email.go.id">
+      </div>
+
+      <div class="filter-field filter-field--small">
+        <label for="limit">
+          <span><i class="fa-regular fa-list-alt"></i> Jumlah data</span>
+        </label>
+        <select id="limit" name="limit">
+          <option value="20">20</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button type="submit" id="loadHistoryBtn">
+          <i class="fa-solid fa-rotate"></i>
+          <span>Tampilkan</span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div id="historyStatus" class="history-status"></div>
+
+  <div id="historyResultsContainer" class="history-results-container" style="display:none;">
+    <div class="history-results-header">
+      <div>
+        <span class="history-count" id="historyCount"></span>
+        <p id="historyInfo" class="history-info"></p>
+      </div>
+    </div>
+
+    <div class="history-table-wrapper">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th style="width: 150px;">Waktu</th>
+            <th style="width: 200px;">User</th>
+            <th>Kata Kunci</th>
+            <th style="width: 90px; text-align:right;">Jml Hasil</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <!-- diisi via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<style>
+  .history-module {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .history-header h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .history-header p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .history-filter {
+    margin-top: 0.5rem;
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 150px;
+    flex: 1;
+  }
+
+  .filter-field--small {
+    max-width: 120px;
+    flex: 0 0 auto;
+  }
+
+  .filter-field label span {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #111827;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .filter-field label span i {
+    color: #14b8a6;
+  }
+
+  .filter-field input,
+  .filter-field select {
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+    outline: none;
+    transition: border-color 0.16s ease-out, box-shadow 0.16s ease-out;
+  }
+
+  .filter-field input:focus,
+  .filter-field select:focus {
+    border-color: #14b8a6;
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.6);
+  }
+
+  .filter-actions {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .filter-actions button {
+    border-radius: 999px;
+    border: none;
+    background: #0f766e;
+    color: #ffffff;
+    padding: 0.48rem 0.95rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 8px 18px rgba(15, 118, 110, 0.4);
+    transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, filter 0.12s ease-out;
+    white-space: nowrap;
+  }
+
+  .filter-actions button i {
+    font-size: 0.9rem;
+  }
+
+  .filter-actions button:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 12px 22px rgba(15, 118, 110, 0.5);
+  }
+
+  .filter-actions button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .history-status {
+    font-size: 0.8rem;
+    min-height: 1rem;
+  }
+
+  .history-status.info {
+    color: #6b7280;
+  }
+
+  .history-status.error {
+    color: #b91c1c;
+  }
+
+  .history-results-container {
+    margin-top: 0.25rem;
+    border-radius: 0.9rem;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    padding: 0.85rem;
+  }
+
+  .history-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+
+  .history-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f766e;
+    background: #ccfbf1;
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .history-info {
+    margin: 0.25rem 0 0;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .history-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+
+  .history-table thead th {
+    text-align: left;
+    background: #ecfeff;
+    border-bottom: 1px solid #d1d5db;
+    padding: 0.45rem 0.5rem;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .history-table tbody td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+
+  .history-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+  }
+
+  .history-table tbody tr:hover {
+    background: #e0f2fe;
+  }
+
+  .history-table .cell-keyword {
+    font-size: 0.8rem;
+  }
+
+  .history-table .cell-email {
+    font-size: 0.78rem;
+    color: #374151;
+  }
+
+  .history-table .cell-email i {
+    margin-right: 0.25rem;
+    color: #14b8a6;
+  }
+
+  .history-table .cell-timestamp {
+    font-size: 0.78rem;
+    color: #111827;
+    white-space: nowrap;
+  }
+
+  .history-table .cell-count {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .badge-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.05rem 0.45rem;
+    font-size: 0.7rem;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  @media (max-width: 768px) {
+    .filter-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-field,
+    .filter-field--small {
+      max-width: none;
+    }
+
+    .history-results-container {
+      padding: 0.75rem;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    'use strict';
+
+    const form = document.getElementById('historyFilterForm');
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    const keywordFilterInput = document.getElementById('keywordFilter');
+    const limitSelect = document.getElementById('limit');
+    const statusEl = document.getElementById('historyStatus');
+    const container = document.getElementById('historyResultsContainer');
+    const bodyEl = document.getElementById('historyBody');
+    const countEl = document.getElementById('historyCount');
+    const infoEl = document.getElementById('historyInfo');
+    const loadBtn = document.getElementById('loadHistoryBtn');
+
+    function setStatus(msg, type) {
+      statusEl.innerHTML = msg || '';
+      statusEl.className = 'history-status ' + (type || '');
+    }
+
+    function setLoading(isLoading) {
+      if (!loadBtn) return;
+      loadBtn.disabled = isLoading;
+      loadBtn.innerHTML = isLoading
+        ? '<i class="fa-solid fa-spinner fa-spin"></i><span>Memuat...</span>'
+        : '<i class="fa-solid fa-rotate"></i><span>Tampilkan</span>';
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderHistory(rows, filters) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        container.style.display = 'none';
+        setStatus('Belum ada history yang sesuai filter.', 'info');
+        return;
+      }
+
+      bodyEl.innerHTML = '';
+      rows.forEach(function (row) {
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td class="cell-timestamp">' + escapeHtml(row.timestampFormatted || '') + '</td>' +
+          '<td class="cell-email"><i class="fa-regular fa-user"></i>' + escapeHtml(row.userEmail || '(tidak diketahui)') + '</td>' +
+          '<td class="cell-keyword">' +
+            '<div>' + escapeHtml(row.keyword || '') + '</div>' +
+            '<div class="badge-small">Kode ditemukan: ' + (row.resultCount || 0) + '</div>' +
+          '</td>' +
+          '<td class="cell-count">' + (row.resultCount || 0) + '</td>';
+        bodyEl.appendChild(tr);
+      });
+
+      container.style.display = 'block';
+      countEl.innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i> ' + rows.length + ' entri history';
+
+      const infoParts = [];
+      // fromDate / toDate / keywordFilter belum dipakai di server, tapi boleh ditampilkan kalau nanti diisi
+      if (filters.fromDate) infoParts.push('dari ' + filters.fromDate);
+      if (filters.toDate) infoParts.push('sampai ' + filters.toDate);
+      if (filters.keywordFilter) infoParts.push('filter: "' + filters.keywordFilter + '"');
+      infoParts.push('batas ' + (filters.limit || 50) + ' entri terakhir');
+      infoEl.textContent = infoParts.join(' · ');
+
+      setStatus('', '');
+    }
+
+    function loadHistory() {
+      const filters = {
+        fromDate: fromDateInput.value || '',
+        toDate: toDateInput.value || '',
+        keywordFilter: keywordFilterInput.value || '',
+        limit: parseInt(limitSelect.value, 10) || 50
+      };
+
+      setStatus('Mengambil data history dari Spreadsheet…', 'info');
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(function (rows) {
+          console.log('DEBUG rows dari server:', rows, ' typeof =', typeof rows);
+
+          if (!Array.isArray(rows)) {
+            rows = [];
+          }
+
+          setLoading(false);
+          renderHistory(rows, filters);
+        })
+        .withFailureHandler(function (err) {
+          setLoading(false);
+          console.error(err);
+          setStatus(
+            'Terjadi kesalahan saat mengambil history: ' +
+              (err && err.message ? err.message : err),
+            'error'
+          );
+          container.style.display = 'none';
+        })
+          .getSearchHistory(filters);
+    }
+
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        loadHistory();
+      });
+    }
+
+    // Auto load initial history (50 entri terakhir)
+    window.addEventListener('load', function () {
+      loadHistory();
+    });
+  })();
+</script>
